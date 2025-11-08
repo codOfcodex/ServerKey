@@ -12,7 +12,7 @@ app.use(bodyParser.json());
 app.use(express.static(path.join(__dirname, "public"))); // serve admin UI files
 
 // CONFIG - set via environment in production
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT; // remove the fallback 3000/8080
 const SECRET = process.env.SECRET || "b4f19c8e6d2a4f7e9d3b2a7f0c8d5e6f4b1a2c3d6e7f8a90b1c2d3e4f5a6b7c";
 const ADMIN_TOKEN = process.env.ADMIN_TOKEN || "9f7e6b8c4a2d1f3e5b6c7d8a0f1e2c3b4d5a6f7b8c9e0d1f2a3b4c5d6e7f8a9";
 const DATA_FILE = path.join(__dirname, "data.json");
