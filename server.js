@@ -59,15 +59,35 @@ app.post("/request", (req, res) => {
 
 // Verify a key (client provides key + hwid)
 app.post("/verify", (req, res) => {
-  const { key, hwid } = req.body;
-  if (!key || !hwid) return res.status(400).json({ status: "error", message: "missing fields" });
+    const { key, hwid } = req.body;
+    if (!key || !hwid) return res.status(400).json({ status: "error", message: "missing fields" });
 
-  const expected = makeKeyFromHmac(hmacFor(String(hwid)));
-  if (key.replace(/\s+/g, "").toUpperCase() === expected.replace(/\s+/g, "").toUpperCase()) {
-    res.json({ status: "ok", message: "valid" });
-  } else {
-    res.json({ status: "error", message: "invalid" });
-  }
+    // 1. Calculate the expected key from the HWID
+    const expected = makeKeyFromHmac(hmacFor(String(hwid)));
+    const inputKey = key.replace(/\s+/g, "").toUpperCase();
+    const expectedKey = expected.replace(/\s+/g, "").toUpperCase();
+
+    // 2. Check if the client's key matches the calculated key
+    if (inputKey === expectedKey) {
+        
+        // 3. CRITICAL: Check the DB for revocation status
+        // We look up the expected key in the issued database.
+        const issuedEntry = DB.issued[expectedKey];
+
+        if (issuedEntry && issuedEntry.revoked) {
+             // 4. DENY: The key is valid, but has been revoked by an admin.
+             console.log(`[AUTH FAILED] Key ${expectedKey} for HWID ${String(hwid)} is revoked.`);
+             return res.json({ status: "error", message: "key has been revoked" }); 
+        }
+
+        // 5. GRANT: The key is valid and not revoked.
+        console.log(`[AUTH SUCCESS] Key verified for HWID: ${String(hwid)}`);
+        res.json({ status: "ok", message: "valid" });
+    } else {
+        // 6. DENY: The key doesn't match the calculated key for this HWID.
+        console.log(`[AUTH FAILED] Invalid key attempt. Provided Key: ${key}, Provided HWID: ${String(hwid)}`);
+        res.json({ status: "error", message: "invalid license key" });
+    }
 });
 
 // ========== ADMIN API ==========
