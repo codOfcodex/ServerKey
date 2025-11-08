@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>HWID Admin Panel</title>
+<style>
+body { font-family: monospace; background: #111; color: #fff; margin: 0; padding: 20px; }
+h1 { color: #0af; }
+button { margin: 5px; padding: 5px 10px; background: #0af; border: none; color: #000; cursor: pointer; }
+input { padding: 5px; margin: 5px; width: 200px; }
+pre { background: #222; padding: 10px; overflow-x: auto; }
+</style>
+</head>
+<body>
+
+<h1>HWID Admin Panel</h1>
+
+<label>Admin Token:</label>
+<input type="text" id="adminToken" placeholder="Paste your admin token here" />
+
+<h2>Pending Requests</h2>
+<pre id="requests">Loading...</pre>
+
+<h2>Generate Key</h2>
+<input type="text" id="hwidInput" placeholder="Enter HWID" />
+<button onclick="generateKey()">Generate Key</button>
+<pre id="generatedKey"></pre>
+
+<h2>Issued Keys</h2>
+<pre id="issuedKeys">Loading...</pre>
+
+<script>
+const API = "http://localhost:3000"; // change if hosted elsewhere
+
+async function fetchRequests() {
+    const token = document.getElementById("adminToken").value;
+    if (!token) return;
+
+    const res = await fetch(`${API}/admin/requests`, {
+        headers: { "x-admin-token": token }
+    });
+    const data = await res.json();
+    document.getElementById("requests").textContent = JSON.stringify(data.requests, null, 2);
+    document.getElementById("issuedKeys").textContent = JSON.stringify(data.issued, null, 2);
+}
+
+async function generateKey() {
+    const token = document.getElementById("adminToken").value;
+    const hwid = document.getElementById("hwidInput").value;
+    if (!token || !hwid) return alert("Token & HWID required");
+
+    const res = await fetch(`${API}/admin/generate`, {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json",
+            "x-admin-token": token
+        },
+        body: JSON.stringify({ hwid })
+    });
+    const data = await res.json();
+    document.getElementById("generatedKey").textContent = JSON.stringify(data, null, 2);
+    fetchRequests();
+}
+
+// Refresh requests every 5 seconds
+setInterval(fetchRequests, 5000);
+</script>
+
+</body>
+</html>
