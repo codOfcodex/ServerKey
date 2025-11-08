@@ -13,8 +13,8 @@ app.use(express.static(path.join(__dirname, "public"))); // serve admin UI files
 
 // CONFIG - set via environment in production
 const PORT = process.env.PORT || 3000;
-const SECRET = process.env.SECRET || "CHANGE_THIS_SECRET";
-const ADMIN_TOKEN = process.env.ADMIN_TOKEN || "CHANGE_THIS_ADMIN_TOKEN";
+const SECRET = process.env.SECRET || "b4f19c8e6d2a4f7e9d3b2a7f0c8d5e6f4b1a2c3d6e7f8a90b1c2d3e4f5a6b7c";
+const ADMIN_TOKEN = process.env.ADMIN_TOKEN || "9f7e6b8c4a2d1f3e5b6c7d8a0f1e2c3b4d5a6f7b8c9e0d1f2a3b4c5d6e7f8a9";
 const DATA_FILE = path.join(__dirname, "data.json");
 
 // DB init (simple JSON persistence)
@@ -40,6 +40,11 @@ function makeKeyFromHmac(hmac) {
 }
 
 // ========== PUBLIC ENDPOINTS ==========
+// Root route
+app.get("/", (req, res) => {
+  res.send("HWID server is running! Visit /ping to check status.");
+});
+
 // Client requests a key
 app.post("/request", (req, res) => {
   const { hwid, userid, username, note } = req.body;
